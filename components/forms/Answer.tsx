@@ -88,10 +88,11 @@ const Answer = ({
 
       const aiAnswer = await response.json();
 
-      // alert(aiAnswer.reply);
+//       alert(aiAnswer.reply);
 
       // format the answer
-      const formattedAnswer = aiAnswer.reply.replace(/\n/g, "<br />");
+      const formattedAnswer = aiAnswer.reply ? aiAnswer.reply.replace(/\n/g, "<br />") : 'Uh oh! Something went wrong trying to generate your response.';
+
 
       if (editorRef.current) {
         const editor = editorRef.current as any;

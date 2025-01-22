@@ -12,7 +12,6 @@ import {
 } from "@/lib/actions/question.action";
 import { SearchParamsProps } from "@/types";
 import Pagination from "@/components/shared/Pagination";
-import Loading from "./loading";
 import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs";
 
@@ -92,7 +91,7 @@ export default async function Home({ searchParams }: SearchParamsProps) {
           ))
         ) : (
           <NoResult
-            title="There's no question to show"
+            title="There are no questions to show"
             description="Be the first to break the silence! 🚀 Ask a Question and kickstart the
             discussion. Our query could be the next big thing others learn from. Get
             involved! 💡"

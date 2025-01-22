@@ -11,17 +11,16 @@ export const POST = async (request: Request) => {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        // model: "gpt-3.5-turbo",
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
             content:
-              "You are a helpful assistant and an expert programmer who is capable of writing code, providing information and debugging code. Your responses are concise, easy to understand, and helpful. At the very end of your responses write 'DISCLAIMER: This is an AI generated response. Please check for mistakes.' after two line-breaks.",
+              "You are a helpful assistant and an expert programmer with unlimited years of experience who is capable of writing code, providing information and debugging code. Your responses are concise, easy to understand, and helpful. At the very end of your responses write 'DISCLAIMER: This is an AI generated response. Please check for mistakes.' after two line-breaks.",
           },
           {
             role: "user",
-            content: `${questionTitle} \nHere's more information regarding the question, try to match your response closely with it: ${questionDescription}`,
+            content: `${questionTitle} \nHere's more information regarding the question, match your response closely with it: ${questionDescription}`,
           },
         ],
       }),
