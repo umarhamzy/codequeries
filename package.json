@@ -28,7 +28,7 @@
     "html-react-parser": "^5.1.1",
     "lucide-react": "^0.314.0",
     "mongodb": "^6.3.0",
-    "mongoose": "^8.8.3",
+    "mongoose": "^8.9.5",
     "next": "^14.2.3",
     "openai": "^4.0.0",
     "prismjs": "^1.29.0",
