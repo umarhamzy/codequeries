@@ -13,6 +13,7 @@ import {
   RecommendedParams,
 } from "./shared.types";
 import User from "@/database/user.model";
+import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
 import Answer from "@/database/answer.model";
 import Interaction from "@/database/interaction.model";
@@ -30,9 +31,10 @@ export async function getQuestions(params: GetQuestionsParams) {
     const query: FilterQuery<typeof Question> = {};
 
     if (searchQuery) {
+      const escapedSearchQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.$or = [
-        { title: { $regex: new RegExp(searchQuery, "i") } },
-        { description: { $regex: new RegExp(searchQuery, "i") } },
+        { title: { $regex: new RegExp(escapedSearchQuery, "i") } },
+        { description: { $regex: new RegExp(escapedSearchQuery, "i") } },
       ];
     }
 
@@ -147,10 +149,17 @@ export async function editQuestion(params: EditQuestionParams) {
     connectToDatabase();
 
     const { questionId, title, description, path } = params;
+    const { userId } = auth();
+
+    if (!userId) throw new Error("Unauthorized: User not logged in");
 
     const question = await Question.findById(questionId).populate("tags");
 
     if (!question) throw new Error("Question not found");
+
+    if (question.author.toString() !== userId) {
+      throw new Error("Unauthorized: User is not the author of this question");
+    }
 
     question.title = title;
     question.description = description;
@@ -165,6 +174,17 @@ export async function deleteQuestion(params: DeleteQuestionParams) {
   try {
     connectToDatabase();
     const { questionId, path } = params;
+    const { userId } = auth();
+
+    if (!userId) throw new Error("Unauthorized: User not logged in");
+
+    const question = await Question.findById(questionId);
+
+    if (!question) throw new Error("Question not found");
+
+    if (question.author.toString() !== userId) {
+      throw new Error("Unauthorized: User is not the author of this question");
+    }
 
     await Question.deleteOne({ _id: questionId });
     await Answer.deleteMany({ question: questionId });

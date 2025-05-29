@@ -12,6 +12,7 @@ import { revalidatePath } from "next/cache";
 import Question from "@/database/question.model";
 import Interaction from "@/database/interaction.model";
 import User from "@/database/user.model";
+import { auth } from "@clerk/nextjs";
 
 export async function createAnswer(params: CreateAnswerParams) {
   try {
@@ -181,8 +182,17 @@ export async function deleteAnswer(params: DeleteAnswerParams) {
   try {
     connectToDatabase();
     const { answerId, path } = params;
+    const { userId } = auth();
+
+    if (!userId) throw new Error("Unauthorized: User not logged in");
 
     const answer = await Answer.findById(answerId);
+
+    if (!answer) throw new Error("Answer not found");
+
+    if (answer.author.toString() !== userId) {
+      throw new Error("Unauthorized: User is not the author of this answer");
+    }
 
     await Answer.deleteOne({ _id: answerId });
     await Question.updateMany(
