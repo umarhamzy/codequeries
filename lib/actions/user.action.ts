@@ -16,6 +16,7 @@ import {
 } from "./shared.types";
 import { revalidatePath } from "next/cache";
 import { FilterQuery } from "mongoose";
+import { auth } from "@clerk/nextjs";
 import Answer from "@/database/answer.model";
 import { BadgeCriteriaType } from "@/types";
 import { assignBadges } from "../utils";
@@ -53,6 +54,13 @@ export async function updateUser(params: UpdateUserParams) {
     connectToDatabase();
 
     const { clerkId, updateData, path } = params;
+    const { userId: currentUserId } = auth();
+
+    if (!currentUserId) throw new Error("Unauthorized: User not logged in");
+
+    if (clerkId !== currentUserId) {
+      throw new Error("Unauthorized: User can only update their own profile");
+    }
 
     await User.findOneAndUpdate({ clerkId }, updateData, {
       new: true,
@@ -70,6 +78,13 @@ export async function deleteUser(params: DeleteUserParams) {
     connectToDatabase();
 
     const { clerkId } = params;
+    const { userId: currentUserId } = auth();
+
+    if (!currentUserId) throw new Error("Unauthorized: User not logged in");
+
+    if (clerkId !== currentUserId) {
+      throw new Error("Unauthorized: User can only delete their own profile");
+    }
 
     const user = await User.findOneAndDelete({ clerkId });
 
@@ -103,9 +118,11 @@ export async function getAllUsers(params: GetAllUsersParams) {
     const query: FilterQuery<typeof User> = {};
 
     if (searchQuery) {
+      // Sanitize the searchQuery to escape special regex characters
+      const escapedSearchQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.$or = [
-        { name: { $regex: new RegExp(searchQuery, "i") } },
-        { username: { $regex: new RegExp(searchQuery, "i") } },
+        { name: { $regex: new RegExp(escapedSearchQuery, "i") } },
+        { username: { $regex: new RegExp(escapedSearchQuery, "i") } },
       ];
     }
 
@@ -186,7 +203,7 @@ export async function getSavedQuestions(params: GetSavedQuestionsParams) {
     const skipAmount = (page - 1) * pageSize;
 
     const query: FilterQuery<typeof Question> = searchQuery
-      ? { title: { $regex: new RegExp(searchQuery) } }
+      ? { title: { $regex: new RegExp(searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "i") } }
       : {};
 
     let sortOptions = {};

@@ -2,6 +2,7 @@
 
 import Prism from "prismjs";
 import parse from "html-react-parser";
+import DOMPurify from "dompurify";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-java";
 import "prismjs/components/prism-c";
@@ -35,7 +36,10 @@ const ParseHTML = ({ data }: Props) => {
     Prism.highlightAll();
   }, []);
 
-  return <div className="markdown w-full min-w-full">{parse(data)}</div>;
+  // Sanitize the HTML data before parsing
+  const cleanData = DOMPurify.sanitize(data);
+
+  return <div className="markdown w-full min-w-full">{parse(cleanData)}</div>;
 };
 
 export default ParseHTML;

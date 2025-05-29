@@ -44,7 +44,8 @@ export async function getAllTags(params: GetAllTagsParams) {
     const query: FilterQuery<typeof Tag> = {};
 
     if (searchQuery) {
-      query.$or = [{ name: { $regex: new RegExp(searchQuery, "i") } }];
+      const escapedSearchQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.$or = [{ name: { $regex: new RegExp(escapedSearchQuery, "i") } }];
     }
 
     let sortOptions = {};
@@ -96,7 +97,7 @@ export async function getQuestionsByTagId(params: GetQuestionsByTagIdParams) {
       path: "questions",
       model: Question,
       match: searchQuery
-        ? { title: { $regex: searchQuery, $options: "i" } }
+        ? { title: { $regex: new RegExp(searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "i") } }
         : {},
       options: {
         sort: {
