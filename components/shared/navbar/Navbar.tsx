@@ -17,6 +17,7 @@ const Navbar = () => {
           width={23}
           height={23}
           alt="logo"
+          loading="eager"
         />
         <p
           className="h2-bold font-spaceGrotesk text-dark-100 dark:text-light-900

@@ -9,19 +9,19 @@ import { auth } from "@clerk/nextjs/server";
 import { SearchParamsProps } from "@/types";
 import Pagination from "@/components/shared/Pagination";
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Collection | CodeQueries",
 };
 
 const page = async ({ searchParams: query }: SearchParamsProps) => {
-  const searchParams = await readSearchParams(query);
   const { userId } = await auth();
 
-  if (!userId) return null;
+  if (!userId) redirect("/sign-in");
 
+  const searchParams = await readSearchParams(query);
   const result = await getSavedQuestions({
-    clerkId: userId,
     searchQuery: searchParams.q,
     filter: searchParams.filter,
     page: searchParams.page ? +searchParams.page : 1,

@@ -13,6 +13,7 @@ import {
   RecommendedParams,
 } from "./shared.types";
 import User from "@/database/user.model";
+import { requireCurrentUser } from "@/lib/current-user";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import Answer from "@/database/answer.model";
@@ -96,10 +97,10 @@ export async function getQuestionById(params: GetQuestionByIdParams) {
 }
 
 export async function createQuestion(params: CreateQuestionParams) {
-  try {
-    await connectToDatabase();
+  const { _id: author } = await requireCurrentUser();
 
-    const { title, description, tags, author, path } = params;
+  try {
+    const { title, description, tags, path } = params;
 
     // Create a question document
     const question = await Question.create({
@@ -145,19 +146,16 @@ export async function createQuestion(params: CreateQuestionParams) {
 }
 
 export async function editQuestion(params: EditQuestionParams) {
+  const { _id: userId } = await requireCurrentUser();
+
   try {
-    await connectToDatabase();
-
     const { questionId, title, description, path } = params;
-    const { userId } = await auth();
-
-    if (!userId) throw new Error("Unauthorized: User not logged in");
 
     const question = await Question.findById(questionId).populate("tags");
 
     if (!question) throw new Error("Question not found");
 
-    if (question.author.toString() !== userId) {
+    if (question.author.toString() !== userId.toString()) {
       throw new Error("Unauthorized: User is not the author of this question");
     }
 
@@ -171,18 +169,16 @@ export async function editQuestion(params: EditQuestionParams) {
 }
 
 export async function deleteQuestion(params: DeleteQuestionParams) {
-  try {
-    await connectToDatabase();
-    const { questionId, path } = params;
-    const { userId } = await auth();
+  const { _id: userId } = await requireCurrentUser();
 
-    if (!userId) throw new Error("Unauthorized: User not logged in");
+  try {
+    const { questionId, path } = params;
 
     const question = await Question.findById(questionId);
 
     if (!question) throw new Error("Question not found");
 
-    if (question.author.toString() !== userId) {
+    if (question.author.toString() !== userId.toString()) {
       throw new Error("Unauthorized: User is not the author of this question");
     }
 
@@ -201,10 +197,10 @@ export async function deleteQuestion(params: DeleteQuestionParams) {
 }
 
 export async function upvoteQuestion(params: QuestionVoteParams) {
-  try {
-    await connectToDatabase();
+  const { _id: userId } = await requireCurrentUser();
 
-    const { questionId, userId, hasUpvoted, hasDownvoted, path } = params;
+  try {
+    const { questionId, hasUpvoted, hasDownvoted, path } = params;
 
     let updateQuery = {};
     if (hasUpvoted) {
@@ -244,10 +240,10 @@ export async function upvoteQuestion(params: QuestionVoteParams) {
 }
 
 export async function downvoteQuestion(params: QuestionVoteParams) {
-  try {
-    await connectToDatabase();
+  const { _id: userId } = await requireCurrentUser();
 
-    const { questionId, userId, hasUpvoted, hasDownvoted, path } = params;
+  try {
+    const { questionId, hasUpvoted, hasDownvoted, path } = params;
 
     let updateQuery = {};
 
@@ -288,10 +284,11 @@ export async function downvoteQuestion(params: QuestionVoteParams) {
 
 export async function getRecommendedQuestions(params: RecommendedParams) {
   try {
+    const { page = 1, pageSize = 20, searchQuery } = params;
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized: User not logged in");
+
     await connectToDatabase();
-
-    const { userId, page = 1, pageSize = 20, searchQuery } = params;
-
     // find user
     const user = await User.findOne({ clerkId: userId });
 

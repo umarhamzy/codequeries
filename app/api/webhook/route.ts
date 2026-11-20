@@ -1,6 +1,8 @@
 import { Webhook } from "svix";
 import { WebhookEvent } from "@clerk/nextjs/server";
-import { createUser, deleteUser, updateUser } from "@/lib/actions/user.action";
+import { connectToDatabase } from "@/lib/mongoose";
+import User from "@/database/user.model";
+import Question from "@/database/question.model";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -28,8 +30,7 @@ export async function POST(req: Request) {
   }
 
   // Get the body
-  const payload = await req.json();
-  const body = JSON.stringify(payload);
+  const body = await req.text();
 
   // Create a new Svix instance with your secret.
   const wh = new Webhook(WEBHOOK_SECRET);
@@ -50,55 +51,48 @@ export async function POST(req: Request) {
     });
   }
 
-  // Get event type
-  const eventType = evt.type;
-
-  console.log({ eventType });
-
-  //* Listening to User sign-up event
-  if (eventType === "user.created") {
-    const { id, email_addresses, image_url, username, first_name, last_name } =
-      evt.data;
-
-    // Create a new user in the database
-    const mongoUser = await createUser({
-      clerkId: id,
-      name: `${first_name}${last_name ? ` ${last_name}` : ""}`,
-      username: username!,
-      email: email_addresses[0].email_address,
+  if (evt.type === "user.created" || evt.type === "user.updated") {
+    const {
+      id,
+      email_addresses,
+      primary_email_address_id,
+      image_url,
+      username,
+      first_name,
+      last_name,
+    } = evt.data;
+    const email =
+      email_addresses.find(({ id }) => id === primary_email_address_id) ??
+      email_addresses[0];
+    const profile = {
+      name: [first_name, last_name].filter(Boolean).join(" "),
+      username,
+      email: email?.email_address,
       picture: image_url,
-    });
+    };
 
-    return NextResponse.json({ message: "OK", user: mongoUser });
+    await connectToDatabase();
+    if (evt.type === "user.created") {
+      await User.updateOne(
+        { clerkId: id },
+        { $setOnInsert: { clerkId: id, ...profile } },
+        { upsert: true },
+      );
+    } else {
+      await User.updateOne({ clerkId: id }, { $set: profile });
+    }
   }
 
-  //* Listening to User profile update event
-  if (eventType === "user.updated") {
-    const { id, email_addresses, image_url, username, first_name, last_name } =
-      evt.data;
-
-    const mongoUser = await updateUser({
-      clerkId: id,
-      updateData: {
-        name: `${first_name}${last_name ? ` ${last_name}` : ""}`,
-        username: username!,
-        email_addresses: email_addresses[0].email_address,
-        picture: image_url,
-      },
-      path: `/profile/${id}`,
-    });
-    return NextResponse.json({ message: "OK", user: mongoUser });
-  }
-
-  //* Listening to User profile delete event
-  if (eventType === "user.deleted") {
+  if (evt.type === "user.deleted") {
     const { id } = evt.data;
+    if (!id) return new Response("Missing user ID", { status: 400 });
 
-    const deletedUser = await deleteUser({
-      clerkId: id!,
-    });
-
-    return NextResponse.json({ message: "OK", user: deletedUser });
+    await connectToDatabase();
+    const user = await User.findOne({ clerkId: id });
+    if (user) {
+      await Question.deleteMany({ author: user._id });
+      await User.deleteOne({ _id: user._id });
+    }
   }
 
   return NextResponse.json({ message: "OK" });

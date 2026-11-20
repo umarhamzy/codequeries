@@ -39,7 +39,6 @@ const Votes = ({
 
   const handleSave = async () => {
     await toggleSaveQuestion({
-      userId: JSON.parse(userId),
       questionId: JSON.parse(itemId),
       path: pathname,
     });
@@ -63,7 +62,6 @@ const Votes = ({
       if (type === "question") {
         await upvoteQuestion({
           questionId: JSON.parse(itemId),
-          userId: JSON.parse(userId),
           hasUpvoted,
           hasDownvoted,
           path: pathname,
@@ -71,7 +69,6 @@ const Votes = ({
       } else if (type === "answer") {
         await upvoteAnswer({
           answerId: JSON.parse(itemId),
-          userId: JSON.parse(userId),
           hasUpvoted,
           hasDownvoted,
           path: pathname,
@@ -87,7 +84,6 @@ const Votes = ({
       if (type === "question") {
         await downvoteQuestion({
           questionId: JSON.parse(itemId),
-          userId: JSON.parse(userId),
           hasUpvoted,
           hasDownvoted,
           path: pathname,
@@ -95,7 +91,6 @@ const Votes = ({
       } else if (type === "answer") {
         await downvoteAnswer({
           answerId: JSON.parse(itemId),
-          userId: JSON.parse(userId),
           hasUpvoted,
           hasDownvoted,
           path: pathname,

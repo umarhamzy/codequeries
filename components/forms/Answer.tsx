@@ -53,7 +53,6 @@ const Answer = ({
     try {
       await createAnswer({
         content: values.answer,
-        author: JSON.parse(authorId),
         question: JSON.parse(questionId),
         path: pathname,
       });

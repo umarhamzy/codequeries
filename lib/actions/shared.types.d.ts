@@ -1,9 +1,5 @@
-import { Schema } from "mongoose";
-import { IUser } from "@/mongodb";
-
 export interface CreateAnswerParams {
   content: string;
-  author: string; // User ID
   question: string; // Question ID
   path: string;
 }
@@ -17,7 +13,6 @@ export interface GetAnswersParams {
 
 export interface AnswerVoteParams {
   answerId: string;
-  userId: string;
   hasUpvoted: boolean;
   hasDownvoted: boolean;
   path: string;
@@ -34,7 +29,6 @@ export interface SearchParams {
 }
 
 export interface RecommendedParams {
-  userId: string;
   page?: number;
   pageSize?: number;
   searchQuery?: string;
@@ -61,7 +55,6 @@ export interface CreateQuestionParams {
   title: string;
   description: string;
   tags: string[];
-  author: Schema.Types.ObjectId | IUser;
   path: string;
 }
 
@@ -71,7 +64,6 @@ export interface GetQuestionByIdParams {
 
 export interface QuestionVoteParams {
   questionId: string;
-  userId: string;
   hasUpvoted: boolean;
   hasDownvoted: boolean;
   path: string;
@@ -108,14 +100,6 @@ export interface GetTopInteractedTagsParams {
   limit?: number;
 }
 
-export interface CreateUserParams {
-  clerkId: string;
-  name: string;
-  username: string;
-  email: string;
-  picture: string;
-}
-
 export interface GetUserByIdParams {
   userId: string;
 }
@@ -129,18 +113,22 @@ export interface GetAllUsersParams {
 
 export interface UpdateUserParams {
   clerkId: string;
-  updateData: Partial<IUser>;
+  updateData: {
+    name?: string;
+    username?: string;
+    location?: string;
+    bio?: string;
+    portfolioWebsite?: string;
+  };
   path: string;
 }
 
 export interface ToggleSaveQuestionParams {
-  userId: string;
   questionId: string;
   path: string;
 }
 
 export interface GetSavedQuestionsParams {
-  clerkId: string;
   page?: number;
   pageSize?: number;
   filter?: string;
@@ -151,8 +139,4 @@ export interface GetUserStatsParams {
   userId: string;
   page?: number;
   pageSize?: number;
-}
-
-export interface DeleteUserParams {
-  clerkId: string;
 }

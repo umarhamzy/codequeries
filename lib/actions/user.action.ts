@@ -5,8 +5,6 @@ import Question from "@/database/question.model";
 import Tag from "@/database/tag.model";
 import { connectToDatabase } from "../mongoose";
 import {
-  CreateUserParams,
-  DeleteUserParams,
   GetAllUsersParams,
   GetSavedQuestionsParams,
   GetUserByIdParams,
@@ -17,16 +15,19 @@ import {
 import { revalidatePath } from "next/cache";
 import { FilterQuery } from "mongoose";
 import { auth } from "@clerk/nextjs/server";
+import { requireCurrentUser } from "@/lib/current-user";
 import Answer from "@/database/answer.model";
 import { BadgeCriteriaType } from "@/types";
 import { assignBadges } from "../utils";
 
 export async function getUserById(params: GetUserByIdParams) {
   try {
+    const { userId } = await auth();
+    if (!userId || userId !== params.userId) {
+      throw new Error("Unauthorized: User profile is private");
+    }
+
     await connectToDatabase();
-
-    const { userId } = params;
-
     const user = await User.findOne({ clerkId: userId });
 
     return user;
@@ -36,23 +37,8 @@ export async function getUserById(params: GetUserByIdParams) {
   }
 }
 
-export async function createUser(userData: CreateUserParams) {
-  try {
-    await connectToDatabase();
-
-    const newUser = await User.create(userData);
-
-    return newUser;
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
-}
-
 export async function updateUser(params: UpdateUserParams) {
   try {
-    await connectToDatabase();
-
     const { clerkId, updateData, path } = params;
     const { userId: currentUserId } = await auth();
 
@@ -62,45 +48,14 @@ export async function updateUser(params: UpdateUserParams) {
       throw new Error("Unauthorized: User can only update their own profile");
     }
 
-    await User.findOneAndUpdate({ clerkId }, updateData, {
-      new: true,
-    });
+    await connectToDatabase();
+    const { name, username, location, bio, portfolioWebsite } = updateData;
+    await User.findOneAndUpdate(
+      { clerkId },
+      { name, username, location, bio, portfolioWebsite },
+    );
 
     revalidatePath(path);
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
-}
-
-export async function deleteUser(params: DeleteUserParams) {
-  try {
-    await connectToDatabase();
-
-    const { clerkId } = params;
-    const { userId: currentUserId } = await auth();
-
-    if (!currentUserId) throw new Error("Unauthorized: User not logged in");
-
-    if (clerkId !== currentUserId) {
-      throw new Error("Unauthorized: User can only delete their own profile");
-    }
-
-    const user = await User.findOneAndDelete({ clerkId });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    // Delete user from database
-    // and questions, answers, comments, etc.
-
-    // Delete user questions
-    await Question.deleteMany({ author: user._id });
-
-    const deletedUser = await User.findByIdAndDelete(user._id);
-
-    return deletedUser;
   } catch (error) {
     console.log(error);
     throw error;
@@ -159,13 +114,9 @@ export async function getAllUsers(params: GetAllUsersParams) {
 
 export async function toggleSaveQuestion(params: ToggleSaveQuestionParams) {
   try {
-    await connectToDatabase();
-
-    const { userId, questionId, path } = params;
-
-    const user = await User.findById(userId);
-
-    if (!userId) throw new Error("No user found!");
+    const user = await requireCurrentUser();
+    const { _id: userId } = user;
+    const { questionId, path } = params;
 
     const isQuestionSaved = user.saved.includes(questionId);
 
@@ -196,10 +147,11 @@ export async function toggleSaveQuestion(params: ToggleSaveQuestionParams) {
 
 export async function getSavedQuestions(params: GetSavedQuestionsParams) {
   try {
+    const { searchQuery, filter, page = 1, pageSize = 10 } = params;
+    const { userId: clerkId } = await auth();
+    if (!clerkId) throw new Error("Unauthorized: User not logged in");
+
     await connectToDatabase();
-
-    const { clerkId, searchQuery, filter, page = 1, pageSize = 10 } = params;
-
     const skipAmount = (page - 1) * pageSize;
 
     const query: FilterQuery<typeof Question> = searchQuery

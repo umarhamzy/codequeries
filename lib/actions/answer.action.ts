@@ -12,13 +12,13 @@ import { revalidatePath } from "next/cache";
 import Question from "@/database/question.model";
 import Interaction from "@/database/interaction.model";
 import User from "@/database/user.model";
-import { auth } from "@clerk/nextjs/server";
+import { requireCurrentUser } from "@/lib/current-user";
 
 export async function createAnswer(params: CreateAnswerParams) {
-  try {
-    await connectToDatabase();
+  const { _id: author } = await requireCurrentUser();
 
-    const { content, author, question, path } = params;
+  try {
+    const { content, question, path } = params;
 
     // Create a document (entry) in the "answer" collection in database
     const newAnswer = await Answer.create({
@@ -91,10 +91,10 @@ export async function getAnswers(params: GetAnswersParams) {
 }
 
 export async function upvoteAnswer(params: AnswerVoteParams) {
-  try {
-    await connectToDatabase();
+  const { _id: userId } = await requireCurrentUser();
 
-    const { answerId, userId, hasUpvoted, hasDownvoted, path } = params;
+  try {
+    const { answerId, hasUpvoted, hasDownvoted, path } = params;
 
     let updateQuery = {};
     if (hasUpvoted) {
@@ -136,10 +136,10 @@ export async function upvoteAnswer(params: AnswerVoteParams) {
 }
 
 export async function downvoteAnswer(params: AnswerVoteParams) {
-  try {
-    await connectToDatabase();
+  const { _id: userId } = await requireCurrentUser();
 
-    const { answerId, userId, hasUpvoted, hasDownvoted, path } = params;
+  try {
+    const { answerId, hasUpvoted, hasDownvoted, path } = params;
 
     let updateQuery = {};
 
@@ -179,18 +179,16 @@ export async function downvoteAnswer(params: AnswerVoteParams) {
 }
 
 export async function deleteAnswer(params: DeleteAnswerParams) {
-  try {
-    await connectToDatabase();
-    const { answerId, path } = params;
-    const { userId } = await auth();
+  const { _id: userId } = await requireCurrentUser();
 
-    if (!userId) throw new Error("Unauthorized: User not logged in");
+  try {
+    const { answerId, path } = params;
 
     const answer = await Answer.findById(answerId);
 
     if (!answer) throw new Error("Answer not found");
 
-    if (answer.author.toString() !== userId) {
+    if (answer.author.toString() !== userId.toString()) {
       throw new Error("Unauthorized: User is not the author of this answer");
     }
 

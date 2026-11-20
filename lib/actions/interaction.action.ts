@@ -4,12 +4,13 @@ import Question from "@/database/question.model";
 import { connectToDatabase } from "../mongoose";
 import { ViewQuestionParams } from "./shared.types";
 import Interaction from "@/database/interaction.model";
+import { requireCurrentUser } from "@/lib/current-user";
 
 export async function viewQuestion(params: ViewQuestionParams) {
   try {
-    await connectToDatabase();
-
     const { questionId, userId } = params;
+    const user = userId ? await requireCurrentUser() : null;
+    await connectToDatabase();
 
     // Update view count for the question
 
@@ -21,9 +22,9 @@ export async function viewQuestion(params: ViewQuestionParams) {
     });
 
     // Check for existing interaction of UserId exists (userId could exist on a different action that isn't view.)
-    if (userId) {
+    if (user) {
       const existingInteraction = await Interaction.findOne({
-        user: userId,
+        user: user._id,
         action: "view",
         question: questionId,
       });
@@ -32,7 +33,7 @@ export async function viewQuestion(params: ViewQuestionParams) {
 
       // Create interaction
       await Interaction.create({
-        user: userId,
+        user: user._id,
         action: "view",
         question: questionId,
       });
