@@ -123,7 +123,7 @@ const Answer = ({
       <Form {...form}>
         <form
           className="mt-6 flex w-full flex-col gap-10"
-          onSubmit={form.handleSubmit(handleCreateAnswer)}
+          onSubmit={(event) => form.handleSubmit(handleCreateAnswer)(event)}
         >
           <FormField
             control={form.control}
