@@ -1,3 +1,4 @@
+import { readSearchParams } from "@/lib/utils";
 import UserCard from "@/components/cards/UserCard";
 import Filter from "@/components/shared/Filter";
 import Pagination from "@/components/shared/Pagination";
@@ -13,7 +14,8 @@ export const metadata: Metadata = {
   title: "Community | CodeQueries",
 };
 
-const page = async ({ searchParams }: SearchParamsProps) => {
+const page = async ({ searchParams: query }: SearchParamsProps) => {
+  const searchParams = await readSearchParams(query);
   const result = await getAllUsers({
     searchQuery: searchParams.q,
     filter: searchParams.filter,

@@ -1,6 +1,6 @@
 "use client";
 
-import { SignedOut, useAuth } from "@clerk/nextjs";
+import { Show, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "../ui/button";
@@ -56,7 +56,7 @@ const LeftSidebar = () => {
         })}
       </div>
 
-      <SignedOut>
+      <Show when="signed-out">
         <div className="flex flex-col gap-3">
           <Link href="/sign-in">
             <Button className="btn-secondary min-h-[41px] w-full rounded-lg px-4 py-3 shadow-none">
@@ -85,7 +85,7 @@ const LeftSidebar = () => {
             </Button>
           </Link>
         </div>
-      </SignedOut>
+      </Show>
     </aside>
   );
 };

@@ -1,25 +1,28 @@
 import mongoose from "mongoose";
 
-let isConnected: boolean = false;
+let pendingConnection: Promise<typeof mongoose> | undefined;
 
 export const connectToDatabase = async () => {
-  mongoose.set("strictQuery", true);
-
-  if (!process.env.MONGODB_URL) {
-    return console.log("MISSING MONGODB_URL");
-  }
-
-  if (isConnected) {
+  if (mongoose.connection.readyState === 1) {
     return;
   }
 
-  try {
-    await mongoose.connect(process.env.MONGODB_URL, {
-      dbName: "dev-overflow",
-    });
-    isConnected = true;
-    // console.log("Connected to MongoDB");
-  } catch (error) {
-    console.log("Error connecting to database", error);
+  const url = process.env.MONGODB_URL;
+  if (!url) {
+    throw new Error("MISSING MONGODB_URL");
   }
+
+  mongoose.set("strictQuery", true);
+  mongoose.set("bufferCommands", false);
+
+  pendingConnection ??= mongoose
+    .connect(url, {
+      dbName: "dev-overflow",
+      serverSelectionTimeoutMS: 5_000,
+    })
+    .finally(() => {
+      pendingConnection = undefined;
+    });
+
+  await pendingConnection;
 };

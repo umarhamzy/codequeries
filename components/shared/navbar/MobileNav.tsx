@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sheet";
 import Image from "next/image";
 import Link from "next/link";
-import { SignedOut } from "@clerk/nextjs";
+import { Show } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { sidebarLinks } from "@/constants";
 import { usePathname } from "next/navigation";
@@ -83,7 +83,7 @@ const MobileNav = () => {
           <NavContent />
           {/* Removed SheetClose here as it's included in NavContent sub-component */}
 
-          <SignedOut>
+          <Show when="signed-out">
             <div className="flex flex-col gap-3">
               <SheetClose asChild>
                 <Link href="/sign-in">
@@ -101,7 +101,7 @@ const MobileNav = () => {
                 </Link>
               </SheetClose>
             </div>
-          </SignedOut>
+          </Show>
         </div>
       </SheetContent>
     </Sheet>

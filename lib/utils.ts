@@ -2,7 +2,17 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import qs from "query-string";
 import { BADGE_CRITERIA } from "@/constants";
-import { BadgeCounts } from "@/types";
+import { BadgeCounts, SearchParamsProps } from "@/types";
+
+export async function readSearchParams(query: SearchParamsProps["searchParams"]) {
+  const params = await query;
+  return Object.fromEntries(
+    Object.entries(params).map(([key, value]) => [
+      key,
+      Array.isArray(value) ? value[0] : value,
+    ]),
+  );
+}
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

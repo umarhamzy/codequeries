@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { getUserInfo } from "@/lib/actions/user.action";
 import { getMonthAndYear } from "@/lib/utils";
-import { URLProps } from "@/types";
-import { SignedIn, auth } from "@clerk/nextjs";
+import { ParamsProps } from "@/types";
+import { Show } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,9 +17,10 @@ export const metadata: Metadata = {
   title: "Profile | CodeQueries",
 };
 
-const Page = async ({ params, searchParams }: URLProps) => {
-  const { userId: clerkId } = auth();
-  const userInfo = await getUserInfo({ userId: params.id });
+const Page = async ({ params }: ParamsProps) => {
+  const { id } = await params;
+  const { userId: clerkId } = await auth();
+  const userInfo = await getUserInfo({ userId: id });
 
   return (
     <>
@@ -65,7 +67,7 @@ const Page = async ({ params, searchParams }: URLProps) => {
           </div>
         </div>
         <div className="flex justify-end max-sm:mb-5 max-sm:w-full sm:mt-3">
-          <SignedIn>
+          <Show when="signed-in">
             {clerkId === userInfo.user.clerkId && (
               <Link href={`/profile/edit`}>
                 <Button className="paragraph-medium btn-secondary text-dark300_light900 min-h-[46px] min-w-[175px] px-4 py-3">
@@ -73,7 +75,7 @@ const Page = async ({ params, searchParams }: URLProps) => {
                 </Button>
               </Link>
             )}
-          </SignedIn>
+          </Show>
         </div>
       </div>
 
@@ -99,7 +101,6 @@ const Page = async ({ params, searchParams }: URLProps) => {
             className="mt-5 flex w-full flex-col gap-6"
           >
             <QuestionTab
-              searchParams={searchParams}
               userId={userInfo.user._id}
               clerkId={clerkId}
             />
@@ -109,7 +110,6 @@ const Page = async ({ params, searchParams }: URLProps) => {
             className="mt-5 flex w-full flex-col gap-6"
           >
             <AnswersTab
-              searchParams={searchParams}
               userId={userInfo.user._id}
               clerkId={clerkId}
             />

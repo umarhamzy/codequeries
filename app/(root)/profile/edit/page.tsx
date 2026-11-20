@@ -1,7 +1,6 @@
 import Profile from "@/components/forms/Profile";
 import { getUserById } from "@/lib/actions/user.action";
-import { ParamsProps } from "@/types";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
@@ -9,8 +8,8 @@ export const metadata: Metadata = {
   title: "Edit Profile | CodeQueries",
 };
 
-const page = async ({ params }: ParamsProps) => {
-  const { userId } = auth();
+const page = async () => {
+  const { userId } = await auth();
 
   if (!userId) redirect("/sign-in");
 

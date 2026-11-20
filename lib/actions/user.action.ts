@@ -16,14 +16,14 @@ import {
 } from "./shared.types";
 import { revalidatePath } from "next/cache";
 import { FilterQuery } from "mongoose";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import Answer from "@/database/answer.model";
 import { BadgeCriteriaType } from "@/types";
 import { assignBadges } from "../utils";
 
 export async function getUserById(params: GetUserByIdParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const { userId } = params;
 
@@ -38,7 +38,7 @@ export async function getUserById(params: GetUserByIdParams) {
 
 export async function createUser(userData: CreateUserParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const newUser = await User.create(userData);
 
@@ -51,10 +51,10 @@ export async function createUser(userData: CreateUserParams) {
 
 export async function updateUser(params: UpdateUserParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const { clerkId, updateData, path } = params;
-    const { userId: currentUserId } = auth();
+    const { userId: currentUserId } = await auth();
 
     if (!currentUserId) throw new Error("Unauthorized: User not logged in");
 
@@ -75,10 +75,10 @@ export async function updateUser(params: UpdateUserParams) {
 
 export async function deleteUser(params: DeleteUserParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const { clerkId } = params;
-    const { userId: currentUserId } = auth();
+    const { userId: currentUserId } = await auth();
 
     if (!currentUserId) throw new Error("Unauthorized: User not logged in");
 
@@ -109,7 +109,7 @@ export async function deleteUser(params: DeleteUserParams) {
 
 export async function getAllUsers(params: GetAllUsersParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const { searchQuery, filter, page = 1, pageSize = 12 } = params;
 
@@ -159,7 +159,7 @@ export async function getAllUsers(params: GetAllUsersParams) {
 
 export async function toggleSaveQuestion(params: ToggleSaveQuestionParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const { userId, questionId, path } = params;
 
@@ -196,7 +196,7 @@ export async function toggleSaveQuestion(params: ToggleSaveQuestionParams) {
 
 export async function getSavedQuestions(params: GetSavedQuestionsParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const { clerkId, searchQuery, filter, page = 1, pageSize = 10 } = params;
 
@@ -263,7 +263,7 @@ export async function getSavedQuestions(params: GetSavedQuestionsParams) {
 
 export async function getUserInfo(params: GetUserByIdParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const { userId } = params;
 
@@ -337,7 +337,7 @@ export async function getUserInfo(params: GetUserByIdParams) {
 
 export async function getUserQuestions(params: GetUserStatsParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const { userId, page = 1, pageSize = 10 } = params;
 
@@ -361,7 +361,7 @@ export async function getUserQuestions(params: GetUserStatsParams) {
 
 export async function getUserAnswers(params: GetUserStatsParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const { userId, page = 1, pageSize = 10 } = params;
 
@@ -392,7 +392,7 @@ export async function getUserAnswers(params: GetUserStatsParams) {
 
 export async function getHotQuestions() {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const hotQuestions = await Question.find({})
       .sort({ views: -1, upvotes: -1 })

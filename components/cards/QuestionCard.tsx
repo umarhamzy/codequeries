@@ -2,7 +2,7 @@ import RenderTag from "../shared/RenderTag";
 import Link from "next/link";
 import Metric from "../shared/Metric";
 import { formatBigNumber, getTimestamp } from "@/lib/utils";
-import { SignedIn } from "@clerk/nextjs";
+import { Show } from "@clerk/nextjs";
 import EditDeleteAction from "../shared/EditDeleteAction";
 
 interface QuestionProps {
@@ -53,11 +53,11 @@ const QuestionCard = async ({
           </Link>
         </div>
 
-        <SignedIn>
+        <Show when="signed-in">
           {showActionButtons && (
             <EditDeleteAction type="question" itemId={JSON.stringify(_id)} />
           )}
-        </SignedIn>
+        </Show>
       </div>
       <div className="mt-3.5 flex flex-wrap gap-2">
         {tags.map((tag) => (

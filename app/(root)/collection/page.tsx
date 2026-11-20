@@ -1,10 +1,11 @@
+import { readSearchParams } from "@/lib/utils";
 import QuestionCard from "@/components/cards/QuestionCard";
 import Filter from "@/components/shared/Filter";
 import LocalSearch from "@/components/shared/search/LocalSearch";
 import { QuestionFilters } from "@/constants/filters";
 import NoResult from "@/components/shared/NoResult";
 import { getSavedQuestions } from "@/lib/actions/user.action";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { SearchParamsProps } from "@/types";
 import Pagination from "@/components/shared/Pagination";
 import { Metadata } from "next";
@@ -13,8 +14,9 @@ export const metadata: Metadata = {
   title: "Collection | CodeQueries",
 };
 
-const page = async ({ searchParams }: SearchParamsProps) => {
-  const { userId } = auth();
+const page = async ({ searchParams: query }: SearchParamsProps) => {
+  const searchParams = await readSearchParams(query);
+  const { userId } = await auth();
 
   if (!userId) return null;
 

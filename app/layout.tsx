@@ -35,6 +35,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
         <ClerkProvider
+          afterSignOutUrl="/"
           appearance={{
             elements: {
               formButtonPrimary: "primary-gradient",

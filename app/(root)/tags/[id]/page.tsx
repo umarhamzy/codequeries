@@ -1,3 +1,4 @@
+import { readSearchParams } from "@/lib/utils";
 import QuestionCard from "@/components/cards/QuestionCard";
 import NoResult from "@/components/shared/NoResult";
 import LocalSearch from "@/components/shared/search/LocalSearch";
@@ -5,9 +6,11 @@ import { QuestionFilters } from "@/constants/filters";
 import { getQuestionsByTagId } from "@/lib/actions/tag.action";
 import { URLProps } from "@/types";
 
-const Page = async ({ params, searchParams }: URLProps) => {
+const Page = async ({ params, searchParams: query }: URLProps) => {
+  const { id } = await params;
+  const searchParams = await readSearchParams(query);
   const result = await getQuestionsByTagId({
-    tagId: params.id,
+    tagId: id,
     searchQuery: searchParams.q,
   });
 
@@ -21,7 +24,7 @@ const Page = async ({ params, searchParams }: URLProps) => {
 
       <div className="mt-11 flex justify-between gap-5 max-sm:flex-col sm:items-center">
         <LocalSearch
-          route={`/tags/${params.id}`}
+          route={`/tags/${id}`}
           iconPosition="left"
           imgSrc="/assets/icons/search.svg"
           placeholder="Search starred questions.."

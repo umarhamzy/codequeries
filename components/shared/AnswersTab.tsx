@@ -1,14 +1,13 @@
 import { getUserAnswers } from "@/lib/actions/user.action";
-import { SearchParamsProps } from "@/types";
 import QuestionCard from "../cards/QuestionCard";
 import AnswerCard from "../cards/AnswerCard";
 
-interface Props extends SearchParamsProps {
+interface Props {
   userId: string;
   clerkId?: string | null;
 }
 
-const AnswersTab = async ({ searchParams, userId, clerkId }: Props) => {
+const AnswersTab = async ({ userId, clerkId }: Props) => {
   const result = await getUserAnswers({ userId, page: 1 });
 
   // console.log(result.answers);

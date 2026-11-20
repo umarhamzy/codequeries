@@ -6,15 +6,17 @@ import RenderTag from "@/components/shared/RenderTag";
 import Votes from "@/components/shared/Votes";
 import { getQuestionById } from "@/lib/actions/question.action";
 import { getUserById } from "@/lib/actions/user.action";
-import { formatBigNumber, getTimestamp } from "@/lib/utils";
+import { formatBigNumber, getTimestamp, readSearchParams } from "@/lib/utils";
 import { URLProps } from "@/types";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
 
-const page = async ({ params, searchParams }: URLProps) => {
-  const result = await getQuestionById({ questionId: params.id });
-  const { userId: clerkId } = auth();
+const page = async ({ params, searchParams: query }: URLProps) => {
+  const { id } = await params;
+  const searchParams = await readSearchParams(query);
+  const result = await getQuestionById({ questionId: id });
+  const { userId: clerkId } = await auth();
 
   // !Fix for viewing specific questions in Home page, remove declaration and leave initialization if errors found.
   let mongoUser = { _id: "", saved: [] };

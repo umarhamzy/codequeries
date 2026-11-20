@@ -27,17 +27,14 @@ export interface Country {
 }
 
 export interface ParamsProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export interface SearchParamsProps {
-  searchParams: { [key: string]: string | undefined };
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export interface URLProps {
-  params: { id: string };
-  searchParams: { [key: string]: string | undefined };
-}
+export interface URLProps extends ParamsProps, SearchParamsProps {}
 
 export interface BadgeCounts {
   GOLD: number;

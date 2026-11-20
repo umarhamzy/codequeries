@@ -1,3 +1,4 @@
+import { readSearchParams } from "@/lib/utils";
 import HomeFilter from "@/components/home/HomeFilters";
 import QuestionCard from "@/components/cards/QuestionCard";
 import Filter from "@/components/shared/Filter";
@@ -13,14 +14,15 @@ import {
 import { SearchParamsProps } from "@/types";
 import Pagination from "@/components/shared/Pagination";
 import type { Metadata } from "next";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 
 export const metadata: Metadata = {
   title: "Home | CodeQueries",
 };
 
-export default async function Home({ searchParams }: SearchParamsProps) {
-  const { userId } = auth();
+export default async function Home({ searchParams: query }: SearchParamsProps) {
+  const searchParams = await readSearchParams(query);
+  const { userId } = await auth();
   let result;
 
   if (searchParams?.filter === "recommended") {

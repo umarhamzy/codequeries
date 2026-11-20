@@ -1,3 +1,4 @@
+import { readSearchParams } from "@/lib/utils";
 import TagCard from "@/components/cards/TagCard";
 import Filter from "@/components/shared/Filter";
 import NoResult from "@/components/shared/NoResult";
@@ -12,7 +13,8 @@ export const metadata: Metadata = {
   title: "Tags | CodeQueries",
 };
 
-const page = async ({ searchParams }: SearchParamsProps) => {
+const page = async ({ searchParams: query }: SearchParamsProps) => {
+  const searchParams = await readSearchParams(query);
   const result = await getAllTags({
     searchQuery: searchParams.q,
     filter: searchParams.filter,
